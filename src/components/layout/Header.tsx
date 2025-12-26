@@ -1,12 +1,15 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Menu, X, Package, Users } from 'lucide-react';
+import { Menu, X, Package, Users, LogIn, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut, loading } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -16,14 +19,19 @@ export function Header() {
     { path: '/seller-signup', label: 'Become a Seller', icon: Users },
   ];
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-hero">
-            <span className="text-lg font-bold text-primary-foreground">S</span>
+            <span className="text-lg font-bold text-primary-foreground">A</span>
           </div>
-          <span className="font-display text-xl font-bold text-foreground">SellBridge</span>
+          <span className="font-display text-xl font-bold text-foreground">Apelago</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -43,12 +51,33 @@ export function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link to="/dashboard">
-            <Button variant="outline" size="sm">Dashboard</Button>
-          </Link>
-          <Link to="/post">
-            <Button variant="accent" size="sm">Post an Item</Button>
-          </Link>
+          {!loading && (
+            <>
+              {user ? (
+                <>
+                  <Link to="/dashboard">
+                    <Button variant="outline" size="sm">Dashboard</Button>
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button variant="outline" size="sm">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/post">
+                    <Button variant="accent" size="sm">Post an Item</Button>
+                  </Link>
+                </>
+              )}
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -87,12 +116,29 @@ export function Header() {
               </Link>
             ))}
             <div className="border-t border-border pt-3 mt-2 flex flex-col gap-2">
-              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full">Dashboard</Button>
-              </Link>
-              <Link to="/post" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="accent" className="w-full">Post an Item</Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full">Dashboard</Button>
+                  </Link>
+                  <Button variant="ghost" className="w-full" onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full">
+                      <LogIn className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/post" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="accent" className="w-full">Post an Item</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </motion.div>

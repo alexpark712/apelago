@@ -213,7 +213,7 @@ export default function PostItem() {
 
             {/* Info Note */}
             <p className="text-center text-sm text-muted-foreground">
-              By posting, you agree to our Terms of Service. SellBridge is a connector only and is not responsible for the sale outcome.
+              By posting, you agree to our Terms of Service. Apelago is a connector only and is not responsible for the sale outcome.
             </p>
           </motion.div>
         </div>

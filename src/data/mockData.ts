@@ -127,7 +127,7 @@ export const mockUsers: User[] = [
 export const currentUser: User = {
   id: 'demo-user',
   name: 'Demo User',
-  email: 'demo@sellbridge.com',
+  email: 'demo@apelago.com',
   phone: '(555) 123-4567',
   role: 'owner',
   isVerified: true,
