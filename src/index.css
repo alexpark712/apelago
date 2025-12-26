@@ -12,31 +12,31 @@
 
 @layer base {
   :root {
-    /* Warm teal palette - trustworthy marketplace feel */
-    --background: 40 33% 98%;
-    --foreground: 200 25% 15%;
+    /* Blue palette - trustworthy marketplace feel */
+    --background: 220 33% 98%;
+    --foreground: 230 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 200 25% 15%;
+    --card-foreground: 230 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 25% 15%;
+    --popover-foreground: 230 25% 15%;
 
-    /* Primary: Warm teal - trust and reliability */
-    --primary: 173 58% 39%;
+    /* Primary: Bold blue #344ceb - trust and reliability */
+    --primary: 232 83% 56%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 173 58% 50%;
+    --primary-glow: 232 83% 65%;
 
-    /* Secondary: Soft warm gray */
-    --secondary: 40 20% 94%;
-    --secondary-foreground: 200 25% 20%;
+    /* Secondary: Soft blue-gray */
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 230 25% 20%;
 
-    /* Muted: Light warm gray */
-    --muted: 40 15% 92%;
-    --muted-foreground: 200 15% 45%;
+    /* Muted: Light blue-gray */
+    --muted: 220 15% 92%;
+    --muted-foreground: 230 15% 45%;
 
-    /* Accent: Coral for CTAs */
-    --accent: 12 76% 61%;
+    /* Accent: Vibrant blue for CTAs */
+    --accent: 232 83% 56%;
     --accent-foreground: 0 0% 100%;
 
     /* Status colors */
@@ -50,20 +50,20 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Open status - available items */
-    --status-open: 173 58% 39%;
-    --status-open-bg: 173 58% 95%;
+    --status-open: 232 83% 56%;
+    --status-open-bg: 232 83% 95%;
     
     /* Claimed status */
     --status-claimed: 38 92% 50%;
     --status-claimed-bg: 38 92% 95%;
     
     /* Done status */
-    --status-done: 200 15% 45%;
-    --status-done-bg: 200 15% 95%;
+    --status-done: 230 15% 45%;
+    --status-done-bg: 230 15% 95%;
 
-    --border: 40 20% 88%;
-    --input: 40 20% 88%;
-    --ring: 173 58% 39%;
+    --border: 220 20% 88%;
+    --input: 220 20% 88%;
+    --ring: 232 83% 56%;
 
     --radius: 0.75rem;
 
@@ -73,9 +73,9 @@
     --shadow-elevated: 0 8px 32px -8px hsl(200 25% 15% / 0.15);
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(173 58% 39%) 0%, hsl(173 58% 32%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(12 76% 61%) 0%, hsl(12 76% 55%) 100%);
-    --gradient-warm: linear-gradient(180deg, hsl(40 33% 98%) 0%, hsl(40 20% 95%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(232 83% 56%) 0%, hsl(232 83% 48%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(232 83% 56%) 0%, hsl(232 83% 50%) 100%);
+    --gradient-warm: linear-gradient(180deg, hsl(220 33% 98%) 0%, hsl(220 20% 95%) 100%);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -88,26 +88,26 @@
   }
 
   .dark {
-    --background: 200 25% 10%;
-    --foreground: 40 20% 95%;
+    --background: 230 25% 10%;
+    --foreground: 220 20% 95%;
 
-    --card: 200 25% 12%;
-    --card-foreground: 40 20% 95%;
+    --card: 230 25% 12%;
+    --card-foreground: 220 20% 95%;
 
-    --popover: 200 25% 12%;
-    --popover-foreground: 40 20% 95%;
+    --popover: 230 25% 12%;
+    --popover-foreground: 220 20% 95%;
 
-    --primary: 173 58% 45%;
+    --primary: 232 83% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 173 58% 55%;
+    --primary-glow: 232 83% 70%;
 
-    --secondary: 200 20% 18%;
-    --secondary-foreground: 40 20% 90%;
+    --secondary: 230 20% 18%;
+    --secondary-foreground: 220 20% 90%;
 
-    --muted: 200 20% 20%;
-    --muted-foreground: 200 15% 60%;
+    --muted: 230 20% 20%;
+    --muted-foreground: 230 15% 60%;
 
-    --accent: 12 76% 55%;
+    --accent: 232 83% 60%;
     --accent-foreground: 0 0% 100%;
 
     --success: 158 64% 50%;
@@ -119,18 +119,18 @@
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --status-open: 173 58% 45%;
-    --status-open-bg: 173 58% 15%;
+    --status-open: 232 83% 60%;
+    --status-open-bg: 232 83% 15%;
     
     --status-claimed: 38 92% 55%;
     --status-claimed-bg: 38 92% 15%;
     
-    --status-done: 200 15% 55%;
-    --status-done-bg: 200 15% 20%;
+    --status-done: 230 15% 55%;
+    --status-done-bg: 230 15% 20%;
 
-    --border: 200 20% 20%;
-    --input: 200 20% 20%;
-    --ring: 173 58% 45%;
+    --border: 230 20% 20%;
+    --input: 230 20% 20%;
+    --ring: 232 83% 60%;
 
     --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
     --shadow-card: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
