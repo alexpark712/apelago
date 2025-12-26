@@ -8,9 +8,9 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-hero">
-                <span className="text-lg font-bold text-primary-foreground">S</span>
+                <span className="text-lg font-bold text-primary-foreground">A</span>
               </div>
-              <span className="font-display text-xl font-bold text-foreground">SellBridge</span>
+              <span className="font-display text-xl font-bold text-foreground">Apelago</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Connecting item owners with vetted local sellers. Simple, secure matching.
@@ -47,10 +47,10 @@ export function Footer() {
 
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} SellBridge. All rights reserved.
+            © {new Date().getFullYear()} Apelago. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">
-            SellBridge is a connector service, not a broker. We are not responsible for item condition, safety, or payment.
+            Apelago is a connector service, not a broker. We are not responsible for item condition, safety, or payment.
           </p>
         </div>
       </div>

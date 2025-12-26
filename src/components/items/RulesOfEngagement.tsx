@@ -81,7 +81,7 @@ export function RulesOfEngagement({ onConfirm, ownerName, sellerName }: RulesOfE
               <div>
                 <h4 className="font-semibold text-foreground">Important Disclaimer</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  SellBridge acts as a connector only. We are not responsible for item condition, safety, payment, or any disputes. All transactions happen between you and the other party.
+                  Apelago acts as a connector only. We are not responsible for item condition, safety, payment, or any disputes. All transactions happen between you and the other party.
                 </p>
               </div>
             </div>
@@ -95,7 +95,7 @@ export function RulesOfEngagement({ onConfirm, ownerName, sellerName }: RulesOfE
                 className="mt-0.5"
               />
               <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                I have read and understand these safety guidelines. I acknowledge that SellBridge is not responsible for the transaction outcome.
+                I have read and understand these safety guidelines. I acknowledge that Apelago is not responsible for the transaction outcome.
               </span>
             </label>
           </div>
