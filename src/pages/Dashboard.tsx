@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ItemCard } from '@/components/items/ItemCard';
-import { mockItems, currentUser } from '@/data/mockData';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Package, 
   Clock, 
@@ -15,27 +17,123 @@ import {
   AlertCircle,
   Plus,
   Users,
-  TrendingUp
+  TrendingUp,
+  Loader2,
+  MapPin,
+  DollarSign
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+
+interface Item {
+  id: string;
+  item_name: string | null;
+  brand: string | null;
+  location: string;
+  min_price: number;
+  photo_url: string;
+  status: string;
+  created_at: string;
+}
+
+interface SellerStatus {
+  status: string;
+  claims_used: number;
+}
 
 export default function Dashboard() {
-  const [userRole] = useState<'owner' | 'seller'>(currentUser.role);
+  const [items, setItems] = useState<Item[]>([]);
+  const [sellerStatus, setSellerStatus] = useState<SellerStatus | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Filter items based on user role
-  const ownerItems = mockItems.filter(item => 
-    item.ownerName === 'Sarah Mitchell' // Demo: show Sarah's items
-  );
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+      return;
+    }
 
-  const openItems = ownerItems.filter(item => item.status === 'open');
-  const claimedItems = ownerItems.filter(item => item.status === 'claimed');
-  const doneItems = ownerItems.filter(item => item.status === 'done');
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user, loading, navigate]);
+
+  const fetchDashboardData = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+
+    // Fetch user roles
+    const { data: rolesData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    if (rolesData) {
+      setUserRoles(rolesData.map(r => r.role));
+    }
+
+    // Fetch user's items (as owner)
+    const { data: itemsData } = await supabase
+      .from('items')
+      .select('*')
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (itemsData) {
+      setItems(itemsData);
+    }
+
+    // Fetch seller status if applicable
+    const { data: sellerData } = await supabase
+      .from('sellers')
+      .select('status, claims_used')
+      .eq('user_id', user.id)
+      .single();
+
+    if (sellerData) {
+      setSellerStatus(sellerData);
+    }
+
+    setIsLoading(false);
+  };
+
+  const openItems = items.filter(item => item.status === 'open');
+  const claimedItems = items.filter(item => item.status === 'claimed');
+  const doneItems = items.filter(item => item.status === 'done');
 
   const stats = [
     { label: 'Active Listings', value: openItems.length, icon: Package, color: 'text-primary' },
     { label: 'Pending Match', value: claimedItems.length, icon: Clock, color: 'text-warning' },
     { label: 'Completed', value: doneItems.length, icon: CheckCircle2, color: 'text-success' },
   ];
+
+  const getStatusBadge = () => {
+    if (userRoles.includes('admin')) {
+      return <Badge variant="verified" className="gap-1"><CheckCircle2 className="h-3 w-3" />Admin</Badge>;
+    }
+    if (sellerStatus) {
+      if (sellerStatus.status === 'active') {
+        return <Badge variant="verified" className="gap-1"><CheckCircle2 className="h-3 w-3" />Verified Seller</Badge>;
+      }
+      if (sellerStatus.status === 'waitlisted') {
+        return <Badge variant="pending" className="gap-1"><Clock className="h-3 w-3" />Seller Waitlisted</Badge>;
+      }
+    }
+    if (userRoles.includes('owner')) {
+      return <Badge variant="open" className="gap-1"><CheckCircle2 className="h-3 w-3" />Owner</Badge>;
+    }
+    return <Badge variant="secondary">User</Badge>;
+  };
+
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -55,23 +153,19 @@ export default function Dashboard() {
                   Dashboard
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Welcome back, {currentUser.name}
+                  Welcome back{user?.user_metadata?.first_name ? `, ${user.user_metadata.first_name}` : ''}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant={currentUser.isVerified ? 'verified' : 'pending'} className="gap-1">
-                  {currentUser.isVerified ? (
-                    <>
-                      <CheckCircle2 className="h-3 w-3" />
-                      Verified
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-3 w-3" />
-                      Pending Verification
-                    </>
-                  )}
-                </Badge>
+                {getStatusBadge()}
+                {userRoles.includes('admin') && (
+                  <Link to="/admin">
+                    <Button variant="outline" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Admin Console
+                    </Button>
+                  </Link>
+                )}
                 <Link to="/post">
                   <Button variant="accent" className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -80,6 +174,20 @@ export default function Dashboard() {
                 </Link>
               </div>
             </div>
+
+            {/* Waitlist Notice */}
+            {sellerStatus?.status === 'waitlisted' && (
+              <Card variant="flat" className="bg-warning/5 border-warning/20">
+                <CardContent className="py-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5 text-warning" />
+                    <p className="text-sm text-foreground">
+                      Your seller application is being reviewed. You'll be notified once approved.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -128,7 +236,7 @@ export default function Dashboard() {
                 {openItems.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {openItems.map((item) => (
-                      <ItemCard key={item.id} item={item} showActions={false} />
+                      <ItemCard key={item.id} item={item} />
                     ))}
                   </div>
                 ) : (
@@ -156,7 +264,7 @@ export default function Dashboard() {
                 {claimedItems.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {claimedItems.map((item) => (
-                      <ItemCard key={item.id} item={item} showActions={true} />
+                      <ItemCard key={item.id} item={item} />
                     ))}
                   </div>
                 ) : (
@@ -178,7 +286,7 @@ export default function Dashboard() {
                 {doneItems.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {doneItems.map((item) => (
-                      <ItemCard key={item.id} item={item} showActions={false} />
+                      <ItemCard key={item.id} item={item} />
                     ))}
                   </div>
                 ) : (
@@ -202,5 +310,53 @@ export default function Dashboard() {
 
       <Footer />
     </div>
+  );
+}
+
+function ItemCard({ item }: { item: Item }) {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'open':
+        return <Badge variant="open">Open</Badge>;
+      case 'claimed':
+        return <Badge variant="pending">Claimed</Badge>;
+      case 'done':
+        return <Badge variant="verified">Sold</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  return (
+    <Card variant="elevated" className="overflow-hidden">
+      <div className="aspect-video relative">
+        <img 
+          src={item.photo_url} 
+          alt={item.item_name || 'Item'} 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute top-3 right-3">
+          {getStatusBadge(item.status)}
+        </div>
+      </div>
+      <CardContent className="pt-4">
+        <h3 className="font-semibold text-foreground mb-2">
+          {item.item_name || 'Untitled Item'}
+        </h3>
+        {item.brand && (
+          <p className="text-sm text-muted-foreground mb-2">{item.brand}</p>
+        )}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            {item.location}
+          </div>
+          <div className="flex items-center gap-1">
+            <DollarSign className="h-3 w-3" />
+            {item.min_price}+
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -8,9 +8,11 @@ import Index from "./pages/Index";
 import BrowseItems from "./pages/BrowseItems";
 import PostItem from "./pages/PostItem";
 import SellerSignup from "./pages/SellerSignup";
+import OwnerSignup from "./pages/OwnerSignup";
 import Dashboard from "./pages/Dashboard";
 import ItemDetail from "./pages/ItemDetail";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,9 +29,11 @@ const App = () => (
             <Route path="/browse" element={<BrowseItems />} />
             <Route path="/post" element={<PostItem />} />
             <Route path="/seller-signup" element={<SellerSignup />} />
+            <Route path="/owner-signup" element={<OwnerSignup />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/item/:id" element={<ItemDetail />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
