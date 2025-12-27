@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -8,20 +9,45 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Camera, MapPin, DollarSign, Truck, CheckCircle2, Upload } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Camera, MapPin, DollarSign, Truck, CheckCircle2, Upload, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function PostItem() {
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [pickupBySeller, setPickupBySeller] = useState(true);
+  const [pickupPreference, setPickupPreference] = useState<'seller_pickup' | 'owner_delivery'>('seller_pickup');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  // Form states
+  const [itemName, setItemName] = useState('');
+  const [brand, setBrand] = useState('');
+  const [location, setLocation] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [note, setNote] = useState('');
+  const [timing, setTiming] = useState<'flexible' | 'urgent' | 'scheduled'>('flexible');
+
+  useEffect(() => {
+    if (!loading && !user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please sign in to post an item.',
+        variant: 'destructive',
+      });
+      navigate('/auth');
+    }
+  }, [user, loading, navigate, toast]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -32,19 +58,93 @@ export default function PostItem() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be signed in to post an item.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!imageFile) {
+      toast({
+        title: 'Error',
+        description: 'Please upload a photo of your item.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Upload image to storage
+      const fileExt = imageFile.name.split('.').pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('item-photos')
+        .upload(filePath, imageFile);
 
-    toast({
-      title: "Item posted successfully!",
-      description: "Your item is now visible to verified sellers in your area.",
-    });
+      if (uploadError) {
+        throw new Error('Failed to upload image');
+      }
 
-    setIsSubmitting(false);
-    navigate('/dashboard');
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('item-photos')
+        .getPublicUrl(filePath);
+
+      // Create item record - use correct pickup_preference values from DB enum
+      const dbPickupPreference = pickupPreference === 'seller_pickup' ? 'seller_pickup' : 'buyer_pickup';
+      const dbTiming = timing === 'urgent' ? 'asap' : timing === 'scheduled' ? 'specific_date' : 'flexible';
+      
+      const { error: itemError } = await supabase
+        .from('items')
+        .insert({
+          owner_id: user.id,
+          item_name: itemName,
+          brand: brand || null,
+          location,
+          min_price: parseFloat(minPrice),
+          photo_url: urlData.publicUrl,
+          pickup_preference: dbPickupPreference,
+          timing: dbTiming,
+          note: note || null,
+          owner_confirmed_terms: true,
+        } as any);
+
+      if (itemError) {
+        throw new Error('Failed to create item listing');
+      }
+
+      toast({
+        title: "Item posted successfully!",
+        description: "Your item is now visible to verified sellers in your area.",
+      });
+
+      navigate('/dashboard');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An error occurred';
+      toast({
+        title: 'Error',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -126,11 +226,24 @@ export default function PostItem() {
 
                   {/* Title */}
                   <div className="space-y-2">
-                    <Label htmlFor="title">Item Title *</Label>
+                    <Label htmlFor="title">Item Name *</Label>
                     <Input
                       id="title"
                       placeholder="e.g., Vintage Leather Sofa"
+                      value={itemName}
+                      onChange={(e) => setItemName(e.target.value)}
                       required
+                    />
+                  </div>
+
+                  {/* Brand */}
+                  <div className="space-y-2">
+                    <Label htmlFor="brand">Brand (optional)</Label>
+                    <Input
+                      id="brand"
+                      placeholder="e.g., West Elm, IKEA"
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
                     />
                   </div>
 
@@ -143,6 +256,8 @@ export default function PostItem() {
                         id="location"
                         placeholder="City or ZIP code"
                         className="pl-10"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
                         required
                       />
                     </div>
@@ -159,12 +274,41 @@ export default function PostItem() {
                         min="1"
                         placeholder="0"
                         className="pl-10"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
                         required
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
                       The seller will try to get more than this amount
                     </p>
+                  </div>
+
+                  {/* Timing */}
+                  <div className="space-y-2">
+                    <Label htmlFor="timing">Timing Preference</Label>
+                    <Select value={timing} onValueChange={(v) => setTiming(v as typeof timing)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="flexible">Flexible - No rush</SelectItem>
+                        <SelectItem value="urgent">Urgent - Need to sell soon</SelectItem>
+                        <SelectItem value="scheduled">Scheduled - Specific timeframe</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Note */}
+                  <div className="space-y-2">
+                    <Label htmlFor="note">Additional Notes (optional)</Label>
+                    <Textarea
+                      id="note"
+                      placeholder="Any additional details about the item..."
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      rows={3}
+                    />
                   </div>
 
                   {/* Pickup Preference */}
@@ -176,14 +320,14 @@ export default function PostItem() {
                       <div>
                         <Label htmlFor="pickup" className="cursor-pointer">Seller picks up item</Label>
                         <p className="text-sm text-muted-foreground">
-                          {pickupBySeller ? 'The seller will come to you' : 'You will deliver to the seller'}
+                          {pickupPreference === 'seller_pickup' ? 'The seller will come to you' : 'You will deliver to the seller'}
                         </p>
                       </div>
                     </div>
                     <Switch
                       id="pickup"
-                      checked={pickupBySeller}
-                      onCheckedChange={setPickupBySeller}
+                      checked={pickupPreference === 'seller_pickup'}
+                      onCheckedChange={(checked) => setPickupPreference(checked ? 'seller_pickup' : 'owner_delivery')}
                     />
                   </div>
 
@@ -197,7 +341,7 @@ export default function PostItem() {
                   >
                     {isSubmitting ? (
                       <>
-                        <Upload className="h-5 w-5 mr-2 animate-pulse" />
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                         Posting...
                       </>
                     ) : (
