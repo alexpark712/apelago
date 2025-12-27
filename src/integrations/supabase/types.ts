@@ -180,6 +180,7 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          facebook_marketplace_link: string | null
           first_name: string | null
           id: string
           last_name: string | null
@@ -189,6 +190,7 @@ export type Database = {
         Insert: {
           created_at?: string
           email: string
+          facebook_marketplace_link?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
@@ -198,6 +200,7 @@ export type Database = {
         Update: {
           created_at?: string
           email?: string
+          facebook_marketplace_link?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
